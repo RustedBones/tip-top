@@ -1,67 +1,73 @@
 package fr.davit.tiptop.user.impl
 
-import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
-import com.lightbend.lagom.scaladsl.playjson.{JsonSerializer, JsonSerializerRegistry}
+import fr.davit.tiptop.common.json.JsonFormats._
+import fr.davit.tiptop.user.api.model.UserId
 import play.api.libs.json._
 
 class UserEntity extends PersistentEntity {
-  override type Command = UserCommand
-  override type Event = UserEvent
-  override type State = Option[User]
+  override type Command = UserCommand[_]
+  override type Event   = UserEvent
+  override type State   = Option[User]
   override def initialState = None
 
   override def behavior: Behavior = {
-    case Some(user) =>
-      Actions().onReadOnlyCommand[GetUser.type, Option[User]] {
-        case (GetUser, ctx, state) => ctx.reply(state)
-      }.onReadOnlyCommand[CreateUser, Done] {
-        case (CreateUser(name), ctx, state) => ctx.invalidCommand("User already exists")
-      }
-    case None =>
-      Actions().onReadOnlyCommand[GetUser.type, Option[User]] {
-        case (GetUser, ctx, state) => ctx.reply(state)
-      }.onCommand[CreateUser, Done] {
-        case (CreateUser(name), ctx, state) =>
-          ctx.thenPersist(UserCreated(name))(_ => ctx.reply(Done))
-      }.onEvent {
-        case (UserCreated(name), state) => Some(User(name))
-      }
+    case None    => read orElse notCreated
+    case Some(_) => read orElse defined
   }
+
+  private val read = Actions()
+    .onReadOnlyCommand[GetUser.type, Option[User]] {
+      case (GetUser, ctx, state) =>
+        ctx.reply(state)
+    }
+
+  private val notCreated = Actions()
+    .onCommand[CreateUser, User] {
+      case (CreateUser(user), ctx, state) =>
+        ctx.thenPersist(UserCreated(user))(u => ctx.reply(u.user))
+    }
+    .onEvent {
+      case (UserCreated(user), state) =>
+        Some(user)
+    }
+
+  private val defined = Actions()
+    .onReadOnlyCommand[CreateUser, User] {
+      case (CreateUser(user), ctx, state) => ctx.invalidCommand("User already exists")
+    }
 }
 
-case class User(name: String)
+//----------------------------------------------------------------------------------------------------------------------
+// Model
+//----------------------------------------------------------------------------------------------------------------------
+case class User(id: UserId, name: String)
 
 object User {
   implicit val format: Format[User] = Json.format
 }
 
-sealed trait UserEvent
-
-case class UserCreated(name: String) extends UserEvent
-
-object UserCreated {
-  implicit val format: Format[UserCreated] = Json.format
-}
-
-sealed trait UserCommand
-
-case class CreateUser(name: String) extends UserCommand with ReplyType[Done]
+//----------------------------------------------------------------------------------------------------------------------
+// Commands
+//----------------------------------------------------------------------------------------------------------------------
+sealed trait UserCommand[R] extends ReplyType[R]
+case class CreateUser(user: User) extends UserCommand[User]
 
 object CreateUser {
   implicit val format: Format[CreateUser] = Json.format
 }
 
-case object GetUser extends UserCommand with ReplyType[Option[User]] {
+case object GetUser extends UserCommand[Option[User]] {
   implicit val format: Format[GetUser.type] = singletonFormat(GetUser)
 }
 
-object UserSerializerRegistry extends JsonSerializerRegistry {
-  override def serializers = List(
-    JsonSerializer[User],
-    JsonSerializer[UserCreated],
-    JsonSerializer[CreateUser],
-    JsonSerializer[GetUser.type]
-  )
+//----------------------------------------------------------------------------------------------------------------------
+// Events
+//----------------------------------------------------------------------------------------------------------------------
+sealed trait UserEvent
+case class UserCreated(user: User) extends UserEvent
+
+object UserCreated {
+  implicit val format: Format[UserCreated] = Json.format
 }
