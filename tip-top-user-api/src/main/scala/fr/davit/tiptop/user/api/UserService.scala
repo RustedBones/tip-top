@@ -1,7 +1,5 @@
 package fr.davit.tiptop.user.api
 
-import java.util.UUID
-
 import akka.NotUsed
 import com.lightbend.lagom.scaladsl.api.{Service, ServiceCall}
 import fr.davit.tiptop.user.api.model.{User, UserId}

@@ -12,14 +12,18 @@ val scalaTest  = "org.scalatest"            %% "scalatest"  % "3.0.4" % Test
 
 lazy val `tip-top` = (project in file("."))
   .aggregate(
-    `common`,
-    `user-api`,
-    `user-impl`,
-    `competition-api`,
-    `competition-impl`
+    `tip-top-common`,
+    `tip-top-user-api`,
+    `tip-top-user-impl`,
+    `tip-top-competition-api`,
+    `tip-top-competition-impl`,
+    `tip-top-provider-api`
   )
 
-lazy val `common` = (project in file("common"))
+//----------------------------------------------------------------------------------------------------------------------
+// Common
+//----------------------------------------------------------------------------------------------------------------------
+lazy val `tip-top-common` = (project in file("tip-top-common"))
   .settings(
     libraryDependencies ++= Seq(
       enumeratum,
@@ -27,15 +31,18 @@ lazy val `common` = (project in file("common"))
     )
   )
 
-lazy val `competition-api` = (project in file("competition-api"))
+//----------------------------------------------------------------------------------------------------------------------
+// Cometition
+//----------------------------------------------------------------------------------------------------------------------
+lazy val `tip-top-competition-api` = (project in file("tip-top-competition-api"))
   .settings(
     libraryDependencies ++= Seq(
       lagomScaladslApi
     )
   )
-  .dependsOn(`common`)
+  .dependsOn(`tip-top-common`)
 
-lazy val `competition-impl` = (project in file("competition-impl"))
+lazy val `tip-top-competition-impl` = (project in file("tip-top-competition-impl"))
   .enablePlugins(LagomScala, SbtReactiveAppPlugin)
   .settings(
     libraryDependencies ++= Seq(
@@ -44,16 +51,19 @@ lazy val `competition-impl` = (project in file("competition-impl"))
       scalaTest
     )
   )
-  .dependsOn(`common`, `competition-api`)
+  .dependsOn(`tip-top-common`, `tip-top-competition-api`)
 
-lazy val `user-api` = (project in file("user-api"))
+//----------------------------------------------------------------------------------------------------------------------
+// User
+//----------------------------------------------------------------------------------------------------------------------
+lazy val `tip-top-user-api` = (project in file("tip-top-user-api"))
   .settings(
     libraryDependencies ++= Seq(
       lagomScaladslApi
     )
-  ).dependsOn(`common`)
+  ).dependsOn(`tip-top-common`)
 
-lazy val `user-impl` = (project in file("user-impl"))
+lazy val `tip-top-user-impl` = (project in file("tip-top-user-impl"))
   .enablePlugins(LagomScala, SbtReactiveAppPlugin)
   .settings(
     libraryDependencies ++= Seq(
@@ -62,4 +72,14 @@ lazy val `user-impl` = (project in file("user-impl"))
       scalaTest
     )
   )
-  .dependsOn(`common`, `user-api`)
+  .dependsOn(`tip-top-common`, `tip-top-user-api`)
+
+//----------------------------------------------------------------------------------------------------------------------
+// Provider
+//----------------------------------------------------------------------------------------------------------------------
+lazy val `tip-top-provider-api` = (project in file("tip-top-provider-api"))
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslApi
+    )
+  ).dependsOn(`tip-top-common`)
