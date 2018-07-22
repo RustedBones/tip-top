@@ -1,18 +1,46 @@
 package fr.davit.tiptop.provider.api
 
+import java.time.Instant
+import java.util.Date
+
 import akka.NotUsed
+import com.lightbend.lagom.scaladsl.api.deser.PathParamSerializer
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
+import com.typesafe.config.ConfigFactory
+import fr.davit.tiptop.common.api.deser.PathParamSerializers
+import fr.davit.tiptop.common.api.transport.AuthTokenHeaderFilter
+import fr.davit.tiptop.common.api.transport.AuthTokenHeaderFilter.{AuthTokenHeader, AuthTokenHeaderSettings}
+import fr.davit.tiptop.provider.api.model.FootballData
 
 trait FootballDataService extends Service {
 
-  def listCompetitions: ServiceCall[NotUsed, FootballData]
+  private val config                           = ConfigFactory.load()
+  private val authTokenHeader: AuthTokenHeader = new AuthTokenHeaderSettings(config, "football-data.token")
+
+  implicit val datePathParamSerializer: PathParamSerializer[Date] =
+    PathParamSerializers.datePathParamSerializer("YYYY-MM-dd")
+  implicit val statusPathParamSerializer: PathParamSerializer[FootballData.MatchStatus] =
+    PathParamSerializers.enumPathParamSerializer(FootballData.MatchStatus)
+
+  def listCompetitions(areas: Option[Seq[Long]] = None): ServiceCall[NotUsed, FootballData.CompetitionList]
+
+  def listCompetitionTeams(competitionId: Long): ServiceCall[NotUsed, FootballData.CompetitionTeamList]
+
+  def listCompetitionMatches(
+      competitionId: Long,
+      dateFrom: Option[Date] = None,
+      dateTo: Option[Date] = None,
+      status: Option[FootballData.MatchStatus] = None): ServiceCall[NotUsed, FootballData.CompetitionMatchList]
 
   override def descriptor: Descriptor = {
     import Service._
-    named("competition").withCalls(
-      pathCall("/api/competition", createCompetition _),
-      pathCall("/api/competition/:id/team", createTeam _),
-      pathCall("/api/competition/:id/match", createMatch _)
-    ).withAutoAcl(true)
+    named("football-data")
+      .withCalls(
+        pathCall("/v2/competitions?areas", listCompetitions _),
+        pathCall("/v2/competitions/:id/teams", listCompetitionTeams _),
+        pathCall("/v2/competitions/:id/matches?dateFrom&dateTo&status", listCompetitionMatches _)
+      )
+      .withHeaderFilter(new AuthTokenHeaderFilter(authTokenHeader))
+      .withAutoAcl(true)
   }
 }

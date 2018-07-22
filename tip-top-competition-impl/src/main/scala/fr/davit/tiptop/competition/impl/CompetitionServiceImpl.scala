@@ -8,7 +8,7 @@ import fr.davit.tiptop.competition.api.model.CompetitionId
 
 import scala.concurrent.ExecutionContext
 
-class CompetitionServiceImpl(registry: PersistentEntityRegistry)(implicit ec: ExecutionContext) extends CompetitionService {
+class CompetitionServiceImpl( registry: PersistentEntityRegistry)(implicit ec: ExecutionContext) extends CompetitionService {
 
   override def createCompetition = { competition =>
     val competitionId = competition.safeId
