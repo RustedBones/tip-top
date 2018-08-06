@@ -8,11 +8,17 @@ import fr.davit.tiptop.competition.api.model.CompetitionId
 
 import scala.concurrent.ExecutionContext
 
-class CompetitionServiceImpl( registry: PersistentEntityRegistry)(implicit ec: ExecutionContext) extends CompetitionService {
+class CompetitionServiceImpl(registry: PersistentEntityRegistry)(implicit ec: ExecutionContext)
+    extends CompetitionService {
 
   override def createCompetition = { competition =>
     val competitionId = competition.safeId
-    val pCompetition = Competition(competitionId, competition.name, competition.startDate, competition.endDate)
+    val sport         = competition.sport
+    val name          = competition.name
+    val startDate     = competition.startDate
+    val endDate       = competition.endDate
+
+    val pCompetition = Competition(competitionId, sport, name, startDate, endDate)
 
     entityRef(competitionId)
       .ask(CreateCompetition(pCompetition))
@@ -35,12 +41,10 @@ class CompetitionServiceImpl( registry: PersistentEntityRegistry)(implicit ec: E
       .map(convertMatch)
   }
 
-
   registry.eventStream(CompetitionEvent.Tag, Offset.noOffset)
 
-
   private def convertCompetition(c: Competition): api.model.Competition = {
-    api.model.Competition(Some(c.id), c.name, c.startDate, c.endDate)
+    api.model.Competition(Some(c.id), c.sport, c.name, c.startDate, c.endDate)
   }
 
   private def convertTeam(t: Team): api.model.Team = {
@@ -50,7 +54,6 @@ class CompetitionServiceImpl( registry: PersistentEntityRegistry)(implicit ec: E
   private def convertMatch(m: Match): api.model.Match = {
     api.model.Match(Some(m.id), m.date, m.homeTeamId, m.awayTeamId, m.status)
   }
-
 
   private def entityRef(competitionId: api.model.CompetitionId) = {
     registry.refFor[CompetitionEntity](competitionId.value.toString)

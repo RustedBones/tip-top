@@ -2,8 +2,8 @@ package fr.davit.tiptop.competition.impl
 
 import java.time.Instant
 
-import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag, AggregateEventTagger, PersistentEntity}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
+import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag, AggregateEventTagger, PersistentEntity}
 import fr.davit.tiptop.competition.api.model._
 import play.api.libs.json.{Format, Json}
 
@@ -60,6 +60,7 @@ class CompetitionEntity extends PersistentEntity {
 //----------------------------------------------------------------------------------------------------------------------
 final case class Competition(
     id: CompetitionId,
+    sport: Sport,
     name: String,
     startDate: Instant,
     endDate: Instant
@@ -86,20 +87,10 @@ object Match {
 //----------------------------------------------------------------------------------------------------------------------
 sealed trait CompetitionCommand[R] extends ReplyType[R]
 final case class CreateCompetition(competition: Competition) extends CompetitionCommand[Competition]
-object CreateCompetition {
-  implicit val format: Format[CreateCompetition] = Json.format[CreateCompetition]
-}
 
 final case class CreateTeam(team: Team) extends CompetitionCommand[Team]
-object CreateTeam {
-  implicit val format: Format[CreateTeam] = Json.format[CreateTeam]
-}
 
 final case class CreateMatch(`match`: Match) extends CompetitionCommand[Match]
-
-object CreateMatch {
-  implicit val format: Format[CreateMatch] = Json.format[CreateMatch]
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 // Events

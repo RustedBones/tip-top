@@ -101,7 +101,7 @@ lazy val `tip-top-provider-impl` = (project in file("tip-top-provider-impl"))
       scalaTest
     )
   )
-  .dependsOn(`tip-top-common`, `tip-top-provider-api`)
+  .dependsOn(`tip-top-common`, `tip-top-provider-api`, `tip-top-competition-api`)
 
 //----------------------------------------------------------------------------------------------------------------------
 // Unmanaged services

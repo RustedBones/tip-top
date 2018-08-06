@@ -18,7 +18,12 @@ object CompetitionId {
   implicit val format: Format[CompetitionId] = valueFormat(CompetitionId.apply, _.value)
 }
 
-final case class Competition(id: Option[CompetitionId], name: String, startDate: Instant, endDate: Instant) {
+final case class Competition(
+    id: Option[CompetitionId],
+    sport: Sport,
+    name: String,
+    startDate: Instant,
+    endDate: Instant) {
   def safeId: CompetitionId = id.getOrElse(CompetitionId(UUID.randomUUID()))
 }
 

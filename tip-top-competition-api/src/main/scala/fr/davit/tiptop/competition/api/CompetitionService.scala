@@ -14,7 +14,7 @@ trait CompetitionService extends Service {
   override def descriptor: Descriptor = {
     import Service._
     named("competition").withCalls(
-      pathCall("/api/competition", createCompetition _),
+      pathCall("/api/competition", createCompetition),
       pathCall("/api/competition/:id/team", createTeam _),
       pathCall("/api/competition/:id/match", createMatch _)
     ).withAutoAcl(true)

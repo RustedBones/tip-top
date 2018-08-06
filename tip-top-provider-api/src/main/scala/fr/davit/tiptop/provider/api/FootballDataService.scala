@@ -24,6 +24,8 @@ trait FootballDataService extends Service {
 
   def listCompetitions(areas: Option[Seq[Long]] = None): ServiceCall[NotUsed, FootballData.CompetitionList]
 
+  def getCompetition(competitionId: Long): ServiceCall[NotUsed, FootballData.Competition]
+
   def listCompetitionTeams(competitionId: Long): ServiceCall[NotUsed, FootballData.CompetitionTeamList]
 
   def listCompetitionMatches(
@@ -37,6 +39,7 @@ trait FootballDataService extends Service {
     named("football-data")
       .withCalls(
         pathCall("/v2/competitions?areas", listCompetitions _),
+        pathCall("/v2/competitions/:id", getCompetition _),
         pathCall("/v2/competitions/:id/teams", listCompetitionTeams _),
         pathCall("/v2/competitions/:id/matches?dateFrom&dateTo&status", listCompetitionMatches _)
       )

@@ -6,9 +6,6 @@ object CompetitionSerializerRegistry extends JsonSerializerRegistry {
   override def serializers = List(
     JsonSerializer[Competition],
     JsonSerializer[Team],
-    JsonSerializer[Match],
-    JsonSerializer[CreateCompetition],
-    JsonSerializer[CreateTeam],
-    JsonSerializer[CreateMatch]
+    JsonSerializer[Match]
   )
 }
